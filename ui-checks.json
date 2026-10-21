@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-21T12:56:39+00:00",
+  "method": "Chrome extension DOM in an agent-created background tab; no native input or tab activation",
+  "checks": [
+    {
+      "action": "Default example",
+      "observed": "3,753,750 expected tokens; 7,580,000 retry ceiling across 100 runs; no assumed prices",
+      "passed": true
+    },
+    {
+      "action": "Enter synthetic input, cached and output prices 2, 0.5, 4 per million",
+      "observed": "Expected cost $8.399 at 0% cache share; $6.3356 at 50% cache share. These are illustrative prices, not market rates.",
+      "passed": true
+    },
+    {
+      "action": "Reset and enter only one of three prices",
+      "observed": "Visible error and disabled export; no stale calculation shown",
+      "passed": true
+    },
+    {
+      "action": "Reset, add one step, remove the added step",
+      "observed": "Step count changed from three to four, then back to three",
+      "passed": true
+    },
+    {
+      "action": "Reset and capture full page",
+      "observed": "Actual screenshot.jpg with blank price fields and token-only estimates; layout inspected",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Desktop only; no mobile or screen-reader check.",
+    "Browser download was not exercised; JSON export was checked separately by the independent in-memory harness.",
+    "No video recorded."
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "project": "Agent Budget Lab",
+  "slug": "agent-budget-lab",
+  "created_at": "2026-10-21T12:45:39.149412+00:00",
+  "status": "built_local",
+  "description": "Original dependency-free browser calculator for bounded agent workflow token estimates, context reuse and user-entered token prices.",
+  "runtime": {
+    "node": "v26.10.0"
+  },
+  "entrypoint": "index.html",
+  "test_command": "node test.js",
+  "test_results": {
+    "passed": 14,
+    "failed": 0,
+    "retry_invariant_scenarios": 231
+  },
+  "checks": [
+    {
+      "command": "node test.js",
+      "exit_code": 0,
+      "stdout": "PASS zero retry probability needs one attempt\nPASS certain retries reach the hard bound without division by zero\nPASS bounded geometric retries include the initial attempt\nPASS zero retry cap ignores retry probability\nPASS known one-step cost and worst-case cap\nPASS cache eligibility changes billing, not total token volume\nPASS multiple steps, retries and planned runs scale independently\nPASS empty prices allow a token-only estimate\nPASS partial pricing is rejected rather than treated as free\nPASS zero tokens and zero prices are valid\nPASS a higher cached price honestly produces negative savings\nPASS unsupported and non-finite numeric input is rejected\nPASS workflow and step bounds prevent nonsensical or unbounded scenarios\nPASS expected cost stays at or below the bounded worst case\n\n14 tests passed.\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "command": "node --check calculator.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "command": "node --check app.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "command": "Python HTMLParser local asset validation and source text checks",
+      "exit_code": 0,
+      "passed": true,
+      "result": "All 3 linked assets exist locally; no external HTTP(S) assets in source; no U+2014 in the 6 source and documentation files."
+    }
+  ],
+  "observed_math_example": {
+    "label": "Synthetic test input, not provider prices or a measured workload",
+    "fresh_input": 1000,
+    "reusable_context": 2000,
+    "output": 500,
+    "runs": 1,
+    "cache_hit_share": 0.75,
+    "retry_chance": 0,
+    "max_retries": 2,
+    "synthetic_usd_per_million": {
+      "uncached_input": 1,
+      "cached_input": 0.1,
+      "output": 3
+    },
+    "asserted_expected_tokens": 3500,
+    "asserted_expected_cost_usd": 0.00315,
+    "asserted_cache_savings_usd": 0.00135
+  },
+  "artifacts": [
+    {
+      "path": "index.html",
+      "sha256": "36423096f36ab2e7e3b80672a01fc64ff83772cbe9b4ca61106f3dde8ce06e7d",
+      "bytes": 7638
+    },
+    {
+      "path": "style.css",
+      "sha256": "af461d5b67b968fc7af90c0ca8d0baaf5fa1ba482599a1af4ee776c6b7118641",
+      "bytes": 10826
+    },
+    {
+      "path": "app.js",
+      "sha256": "5a33026e3a99490a0c790dc17d7ba981c98bf1708e8082caa15a6b86b2343152",
+      "bytes": 9268
+    },
+    {
+      "path": "calculator.js",
+      "sha256": "2b26eabc76f1f0f935578ee8002b6bc1b86e42fabbce51c6ba6d0fe35924ce22",
+      "bytes": 4694
+    },
+    {
+      "path": "test.js",
+      "sha256": "868f22580b1896e312c0241849c5310de7d2725920b5c3012a28bd2451df2810",
+      "bytes": 3873
+    },
+    {
+      "path": "README.md",
+      "sha256": "db55f70baa93057ea1f74f7b4b23c8279674f2a4142321bf8ba8dda55a575585",
+      "bytes": 4887
+    }
+  ],
+  "media": [
+    "screenshot.jpg"
+  ],
+  "screenshots": [
+    "screenshot.jpg"
+  ],
+  "video": null,
+  "visual_review_performed": true,
+  "browser_interaction_performed": true,
+  "deployed": false,
+  "public_url": null,
+  "public_repository_url": null,
+  "external_resources_created": false,
+  "api_calls_made": false,
+  "limitations": [
+    "Desktop Chrome checks and a screenshot were added. Mobile, screen reader and video checks were not performed.",
+    "Cost and token results are simulations with user-entered prices and fixed per-attempt token counts, not measured agent performance.",
+    "All steps always run and use one shared price set; branching, early termination and growing conversation context are not modeled.",
+    "Cache share is applied to reusable context on all attempts, including the first; actual cache eligibility and provider billing may differ.",
+    "Tool fees, media generation, unentered reasoning tokens, rate limits, taxes and failed-request billing exceptions are excluded.",
+    "No deployment, public repository, public URL or promotional post exists from this build."
+  ],
+  "additional_qa": "ui-checks.json"
+}

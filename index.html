@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A local calculator for agent workflow token budgets, bounded retries and context reuse. Enter your own prices.">
+  <title>Agent Budget Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="calculator.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header wrap">
+    <a href="./" class="brand"><span class="brand-icon" aria-hidden="true">ab</span> Agent Budget Lab</a>
+    <span class="local-label"><i aria-hidden="true"></i> Runs in your browser</span>
+  </header>
+  <main class="wrap">
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">BEFORE YOU RUN THE AGENT</p><h1 id="page-title">Give the workflow<br>a budget.</h1><p class="lede">See how steps, retries and reusable context change a token estimate. Bring your own prices. Make the assumptions visible.</p></div>
+      <aside class="intro-note"><span class="small-label">A SMALL MODEL, ON PURPOSE</span><p>One attempt can look cheap.<br>The loop is what adds up.</p><span>Estimates only. No API calls or model prices built in.</span></aside>
+    </section>
+
+    <div id="error" class="error" role="alert" hidden></div>
+    <div class="workspace">
+      <div class="inputs">
+        <section class="panel" aria-labelledby="scenario-title">
+          <div class="section-heading"><div><p class="section-number">01 / SCENARIO</p><h2 id="scenario-title">Set the boundaries</h2></div><button id="reset" class="text-button" type="button">Reset example</button></div>
+          <div class="input-grid scenario-grid">
+            <label>Workflow runs<input id="runs" type="number" min="1" max="1000000" step="1" value="100"><small>How many complete workflows?</small></label>
+            <label>Cache hit share <span class="unit">%</span><input id="cacheHit" type="number" min="0" max="100" step="1" value="0"><small>Share of reusable context billed as cached.</small></label>
+            <label>Budget <span class="unit">USD, optional</span><input id="budget" type="number" min="0" max="1000000000" step="any" placeholder="e.g. 25"><small>Compare against this scenario.</small></label>
+          </div>
+          <p class="note">Start cache hits at 0% unless you have measured them. Reusable context is still sent on every attempt.</p>
+        </section>
+
+        <section class="panel" aria-labelledby="steps-title">
+          <div class="section-heading"><div><p class="section-number">02 / WORKFLOW</p><h2 id="steps-title">Map the work</h2></div><button id="add-step" class="outline-button" type="button">+ Add step</button></div>
+          <p class="section-description">Tokens per attempt. Example numbers are illustrative, not benchmarks.</p>
+          <div id="steps" class="steps"></div>
+          <div class="legend"><span><i class="key fresh"></i> Fresh input</span><span><i class="key cached"></i> Reusable context</span><span><i class="key output"></i> Output</span></div>
+        </section>
+
+        <section class="panel" aria-labelledby="prices-title">
+          <div class="section-heading"><div><p class="section-number">03 / YOUR PRICES</p><h2 id="prices-title">Price the tokens</h2></div><span class="tag">USD / 1M tokens</span></div>
+          <div class="input-grid">
+            <label>Uncached input<input id="inputPrice" type="number" min="0" max="1000000" step="any" placeholder="Enter price"></label>
+            <label>Cached input<input id="cachedPrice" type="number" min="0" max="1000000" step="any" placeholder="Enter price"></label>
+            <label>Output<input id="outputPrice" type="number" min="0" max="1000000" step="any" placeholder="Enter price"></label>
+          </div>
+          <p class="note">Use the same model and prices for all steps. Enter all three prices, including 0 if appropriate, or leave all three blank for a token-only estimate.</p>
+        </section>
+      </div>
+
+      <aside class="results" aria-labelledby="results-title">
+        <section class="result-panel">
+          <p class="section-number">YOUR SCENARIO</p><h2 id="results-title">The cost of the loop</h2>
+          <div class="primary-result"><span id="cost-label">Expected cost</span><strong id="expected-cost">Enter prices</strong><small id="expected-tokens"></small></div>
+          <div class="ceiling-result"><span>Retry ceiling</span><strong id="worst-cost">Tokens only</strong><small id="worst-tokens"></small></div>
+          <p class="ceiling-note">Every allowed retry, at the same token and cache assumptions. This is not a guaranteed invoice cap.</p>
+          <div id="budget-result" class="budget-result" hidden><div><span>Expected / budget</span><strong id="budget-text"></strong></div><div class="budget-track"><span id="budget-fill"></span></div></div>
+          <div class="separator"></div>
+          <div class="result-heading"><h3>Where the tokens go</h3><span>Expected, all runs</span></div>
+          <div id="breakdown" class="breakdown"></div>
+          <dl class="token-totals"><div><dt>Uncached input</dt><dd id="fresh-total"></dd></div><div><dt>Cached input</dt><dd id="cached-total"></dd></div><div><dt>Output</dt><dd id="output-total"></dd></div></dl>
+          <p id="cache-saving" class="cache-saving"></p>
+          <button id="export" class="primary-button" type="button">Download scenario JSON <span aria-hidden="true">↗</span></button>
+          <p class="privacy-note">No network requests. No accounts. Inputs stay in this tab unless you export them.</p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="assumptions panel" aria-labelledby="assumptions-title">
+      <div><p class="section-number">READ THE SMALL MODEL</p><h2 id="assumptions-title">The math is part of the product.</h2></div>
+      <div class="assumptions-grid">
+        <article><h3>1. Bound the retries</h3><p>With retry chance <code>p</code> and at most <code>r</code> retries, expected attempts are <code>1 + p + p² + … + pʳ</code>. The ceiling is <code>1 + r</code>. A retry chance of 100% is handled directly.</p></article>
+        <article><h3>2. Keep caching explicit</h3><p>Per attempt, cached input is reusable context × cache hit share. All fresh input and the remaining reusable context use the uncached rate. The estimate applies that share to every attempt, including the first.</p></article>
+        <article><h3>3. Know what is missing</h3><p>Every step runs every time. Tokens per attempt and retry probability stay constant. Tool fees, image or audio generation, hidden reasoning tokens, branching, failed-request billing rules and taxes are not modeled. Add billable reasoning tokens to output yourself if applicable.</p></article>
+      </div>
+      <details><summary>Show the full cost equation</summary><p><code>runs × Σ [expected attempts × (uncached tokens × input price + cached tokens × cached price + output tokens × output price) / 1,000,000]</code></p><p>Each attempt has the same entered token volume. Retries do not accumulate conversation history in this model. Rates are user inputs and are never fetched or verified. Correlated failures, provider caching thresholds, prefix rules, expiry and rate limits may make real results differ.</p></details>
+    </section>
+  </main>
+  <footer class="wrap"><span>Agent Budget Lab</span><span>Build smaller loops. Measure the real ones.</span></footer>
+  <noscript><p class="wrap error">JavaScript is required to calculate scenarios. No calculations have run.</p></noscript>
+</body>
+</html>
